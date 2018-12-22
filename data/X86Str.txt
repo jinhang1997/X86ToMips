@@ -1,1 +1,6 @@
-add eax,ebx;
+    mov esi, 0
+next:
+    mov eax, 0
+    inc esi
+    dec esi
+    mov  esi,eax

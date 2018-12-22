@@ -6,3 +6,23 @@
 
 #IncludeRegexTransform: 
 
+F:/IDEA/CCode/x86ToMips/code/main.cpp
+iostream
+-
+fstream
+-
+sstream
+-
+cstdlib
+-
+cassert
+-
+string
+-
+map
+-
+vector
+-
+cstring
+-
+
