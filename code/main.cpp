@@ -101,7 +101,7 @@ string Transfer(string lineStr) {
             return paramStr + " " + temp+ "\n";
         }
     }
-    return lineStr + "\n";  //不在当前匹配的二元运算符中
+    return lineStr + "\n";  //不在当前匹配的运算符中
 }
 
 
