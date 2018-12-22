@@ -1,3 +1,0 @@
-F:/IDEA/CCode/x86ToMips/cmake-build-debug/CMakeFiles/x86ToMips.dir
-F:/IDEA/CCode/x86ToMips/cmake-build-debug/CMakeFiles/edit_cache.dir
-F:/IDEA/CCode/x86ToMips/cmake-build-debug/CMakeFiles/rebuild_cache.dir
