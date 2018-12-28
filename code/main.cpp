@@ -1,93 +1,78 @@
+//
+// Created by cyw35 on 2018/12/18.
+//
+
 #include<iostream>
 #include <fstream>
-#include <stdlib.h>
+#include <sstream>
+#include <cstdlib>
 #include <cassert>
 #include <string>
 #include <map>
 #include <vector>
-#include <string.h>
+#include <cstring>
+
+#include "util/fileUtil.h"
+#include "util/stringUtil.h"
 
 using namespace std;
 
-#define N 4
+#define N1 8
+#define N2 9
+#define N3 3
 
-string x86Resgiter[N] = { "eax","ebx","ecx","edx" };
-string mipsResgiter[N] = { "t1","t2","t3","t4" };
+string x86Resgiter[N1] = {"eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp"};
+string mipsResgiter[N1] = {"t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7"};
+map<string, string> strMap;    //å¯„å­˜å™¨ä¹‹é—´çš„æ˜ å°„è¡¨
 
-map<string, string> strMap;	//¼Ä´æÆ÷Ö®¼äµÄÓ³Éä±í 
+string binaryOp[N2] = {"mov", "add", "sub", "and", "or", "xor", "nor", "shl", "shr"};
+//string mipsBinaryOp[] = {"addi", "subi", "andi", "ori", "xori","nor" "shl", "shr", "move"};
+string unaryOp[N3] = {"neg", "dec", "inc"};
 
-vector<string> readTxt(string file){
-	ifstream infile;
-	infile.open(file.data());   //½«ÎÄ¼şÁ÷¶ÔÏóÓëÎÄ¼şÁ¬½ÓÆğÀ´ 
-	assert(infile.is_open());   //ÈôÊ§°Ü,ÔòÊä³ö´íÎóÏûÏ¢,²¢ÖÕÖ¹³ÌĞòÔËĞĞ 
-	vector<string> res;
-	string s;
-	while (getline(infile, s)) {
-		int len = s.size();
-		//´¦Àí¾äÎ²µÄ¡®£»¡¯
-		s = s.at(len - 1) == ';' ? s.substr(0, len - 1) : s;
-		res.insert(res.end(), s);
-	}
-	infile.close();             //¹Ø±ÕÎÄ¼şÊäÈëÁ÷ 
-	return res;
-}
+vector<string> readTxt(string file);
+void writeTxt(char *file, string content);
+bool isNum(string str);
+vector<string> split(const string &str, const string &delim);
+
 
 void init() {
-	//´ı²¹³ä 
-	for (int i = 0; i < N; i++) {
-		strMap[x86Resgiter[i]] = mipsResgiter[i];
-	}
+    //å»ºç«‹å¯¹åº”å…³ç³»
+    for (int i = 0; i < N1; i++) {
+        strMap[x86Resgiter[i]] = mipsResgiter[i];
+    }
 }
 
-vector<string> split(const string& str, const string& delim) {
-	vector<string> res;
-	if ("" == str) return res;
-	//ÏÈ½«ÒªÇĞ¸îµÄ×Ö·û´®´ÓstringÀàĞÍ×ª»»Îªchar*ÀàĞÍ
-	char * strs = new char[str.length() + 1]; //²»ÒªÍüÁË
-	strcpy(strs, str.c_str());
-	char * d = new char[delim.length() + 1];
-	strcpy(d, delim.c_str());
-	char *p = strtok(strs, d);
-	while (p) {
-		string s = p; //·Ö¸îµÃµ½µÄ×Ö·û´®×ª»»ÎªstringÀàĞÍ
-		res.push_back(s); //´æÈë½á¹ûÊı×é
-		p = strtok(NULL, d);
-	}
-	return res;
+string Transfer(string lineStr) {
+    string paramStr = split(lineStr, " ")[0];   //å–å‡ºæ“ä½œç¬¦
+    for (int i = 0; i < N2; i++) {
+        if (paramStr == binaryOp[i]) {
+            int pos = lineStr.find(paramStr);
+            string temp = lineStr.substr(pos + paramStr.length() + 1);
+            vector<string> params = split(temp, ",");
+            params[0] = "$" + strMap[params[0]];
+            params[1] = isNum(params[1]) ? params[1] : "$" + strMap[params[1]];
+            return paramStr + " " + params[0] + "," + params[1] + "\n";
+        } else if (i < N3 && paramStr == unaryOp[i]) {
+            int pos = lineStr.find(paramStr);
+            string temp = lineStr.substr(pos + paramStr.length() + 1);
+            temp = isNum(temp) ? temp : "$" + strMap[temp];
+            return paramStr + " " + temp + "\n";
+        }
+    }
+    return lineStr + "\n";  //ä¸åœ¨å½“å‰åŒ¹é…çš„è¿ç®—ç¬¦ä¸­
 }
 
-void writeTxt(char *file,string content){
-	ofstream outfile(file); 
-	outfile << content;
-	outfile.close();
-} 
 
 int main() {
-	vector<string> readStr = readTxt("../data/X86Str.txt");	
-	string writeRes = "";
-	init();
-	int len = readStr.size();
-	int pos;
-	for (int i = 0; i < len; i++) {
-		string str = readStr[i];
-		string lineStr = "";
-		
-		//²Ù×÷ÂëÎª add 
-		pos = readStr[i].find("add");
-		if (pos != -1) {
-			string temp = readStr[i].substr(pos+4);
-			//cout << temp << endl;
-			vector<string> params = split(temp, ",");
-			if (params.size() == 2) {	//¸úÁ½¸ö¼Ä´æÆ÷µÄÇé¿ö£¬ÇÒÎ´¿¼ÂÇÁ¢¼´Êı
-				lineStr += "lw $" +strMap[params[0]]+"\n";
-				lineStr += "lw $" + strMap[params[1]] + "\n";
-				lineStr += "addu $" + strMap[params[0]] + ",$"+ strMap[params[0]] + ",$" + strMap[params[1]];
-			}	
-			//´ıÍØÕ¹ 
-		}
-		writeRes += lineStr + "\n";
-	}
-	cout << writeRes << endl;
-	writeTxt("../data/MipsStr.txt",writeRes);
-	return 0;
+    vector<string> readStr = readTxt("../data/X86Str.txt");
+    string writeRes = "";
+    int len = readStr.size();
+    init();
+    for (int i = 0; i < len; i++) {
+        string lineStr = readStr[i];
+        writeRes += Transfer(lineStr);
+    }
+    cout << writeRes << endl;
+    writeTxt("../data/MipsStr.txt", writeRes);
+    return 0;
 }

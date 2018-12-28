@@ -1,3 +1,6 @@
-lw $t1
-lw $t2
-addu $t1,$t1,$t2
+mov $t4, 0
+next:
+mov $t0, 0
+inc $t4
+dec $t4
+mov $,$t0
